@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mama Tee's Kitchen — Live Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #075E54;
+    --green-mid: #128C7E;
+    --green-light: #25D366;
+    --green-pale: #DCF8C6;
+    --orange: #E65100;
+    --orange-light: #FFF3E0;
+    --bg: #F0F2F5;
+    --sidebar-bg: #FFFFFF;
+    --chat-bg: #EAE6DC;
+    --white: #FFFFFF;
+    --text-dark: #111B21;
+    --text-mid: #3B4A54;
+    --text-light: #667781;
+    --border: #E9EDEF;
+    --bot-bubble: #FFFFFF;
+    --user-bubble: #DCF8C6;
+    --human-bubble: #FFF3E0;
+    --red: #E53935;
+    --red-light: #FFEBEE;
+    --shadow: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text-dark);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--green-dark);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .topbar-logo {
+    width: 36px;
+    height: 36px;
+    background: var(--green-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .topbar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: -0.3px;
+  }
+
+  .topbar-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: white;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green-light);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .last-updated {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* METRICS ROW */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px 20px 0;
+    flex-shrink: 0;
+  }
+
+  .metric-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.2s;
+  }
+
+  .metric-card:hover { transform: translateY(-2px); }
+
+  .metric-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .metric-icon.green { background: #E8F5E9; }
+  .metric-icon.blue { background: #E3F2FD; }
+  .metric-icon.orange { background: var(--orange-light); }
+  .metric-icon.red { background: var(--red-light); }
+
+  .metric-info { flex: 1; min-width: 0; }
+
+  .metric-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-dark);
+    line-height: 1;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* MAIN AREA */
+  .main {
+    display: flex;
+    flex: 1;
+    gap: 0;
+    overflow: hidden;
+    margin-top: 16px;
+    padding: 0 20px 20px;
+    gap: 12px;
+  }
+
+  /* CONVERSATIONS SIDEBAR */
+  .sidebar {
+    width: 340px;
+    flex-shrink: 0;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .sidebar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+
+  .sidebar-count {
+    background: var(--green-light);
+    color: white;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .search-box {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--bg);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: 'Sora', sans-serif;
+    color: var(--text-dark);
+    outline: none;
+  }
+
+  .search-input::placeholder { color: var(--text-light); }
+
+  .conv-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .conv-list::-webkit-scrollbar { width: 4px; }
+  .conv-list::-webkit-scrollbar-track { background: transparent; }
+  .conv-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .conv-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+
+  .conv-item:hover { background: var(--bg); }
+  .conv-item.active { background: #F0FDF4; border-left: 3px solid var(--green-light); }
+  .conv-item.handoff { background: var(--red-light); border-left: 3px solid var(--red); }
+  .conv-item.handoff:hover { background: #FFCDD2; }
+
+  .conv-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .conv-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+
+  .conv-time {
+    font-size: 11px;
+    color: var(--text-light);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .conv-preview {
+    font-size: 12px;
+    color: var(--text-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 240px;
+  }
+
+  .conv-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-active { background: #E8F5E9; color: #2E7D32; }
+  .badge-handoff { background: var(--red-light); color: var(--red); }
+  .badge-resolved { background: #E3F2FD; color: #1565C0; }
+  .badge-vip { background: #FFF8E1; color: #F57F17; }
+
+  .conv-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+    margin-right: 12px;
+    float: left;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--text-light);
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .empty-icon { font-size: 40px; opacity: 0.3; }
+
+  /* CHAT PANEL */
+  .chat-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--chat-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .chat-header {
+    background: var(--green-dark);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .chat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    color: white;
+  }
+
+  .chat-header-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+  }
+
+  .chat-header-status {
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+  }
+
+  .chat-header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn {
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
+  }
+
+  .btn-resolve {
+    background: var(--green-light);
+    color: white;
+  }
+
+  .btn-resolve:hover { background: #1EBE56; }
+
+  .btn-handoff {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  .btn-handoff:hover { background: rgba(255,255,255,0.25); }
+
+  .btn-refresh {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: none;
+    padding: 7px 12px;
+  }
+
+  /* MESSAGES */
+  .messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .messages-area::-webkit-scrollbar { width: 4px; }
+  .messages-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+  .msg-group { margin-bottom: 8px; }
+
+  .msg-bubble {
+    max-width: 65%;
+    padding: 8px 12px 6px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    position: relative;
+    word-wrap: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  .msg-user {
+    background: var(--user-bubble);
+    margin-left: auto;
+    border-radius: 8px 0 8px 8px;
+  }
+
+  .msg-bot {
+    background: var(--bot-bubble);
+    margin-right: auto;
+    border-radius: 0 8px 8px 8px;
+  }
+
+  .msg-human {
+    background: var(--human-bubble);
+    margin-right: auto;
+    border-radius: 0 8px 8px 8px;
+    border-left: 3px solid var(--orange);
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-light);
+    text-align: right;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .msg-sender-label {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+
+  .msg-sender-bot { color: var(--green-mid); }
+  .msg-sender-human { color: var(--orange); }
+
+  .date-divider {
+    text-align: center;
+    margin: 12px 0;
+  }
+
+  .date-divider span {
+    background: rgba(255,255,255,0.8);
+    padding: 4px 14px;
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  /* REPLY BOX */
+  .reply-area {
+    padding: 12px 16px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .handoff-notice {
+    background: var(--red-light);
+    border: 1px solid #FFCDD2;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--red);
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .reply-box {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    background: white;
+    border-radius: 24px;
+    padding: 8px 8px 8px 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .reply-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: 'Sora', sans-serif;
+    resize: none;
+    max-height: 100px;
+    color: var(--text-dark);
+    background: transparent;
+    line-height: 1.5;
+  }
+
+  .reply-input::placeholder { color: var(--text-light); }
+
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--green-mid);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+
+  .send-btn:hover { background: var(--green-dark); }
+
+  .send-btn svg { width: 18px; height: 18px; fill: white; }
+
+  /* EMPTY CHAT */
+  .empty-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    gap: 12px;
+  }
+
+  .empty-chat-icon { font-size: 64px; opacity: 0.3; }
+
+  .empty-chat-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-mid);
+  }
+
+  .empty-chat-sub { font-size: 13px; }
+
+  /* LOADING */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--text-light);
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--green-mid);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--text-dark);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 1000;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--green-mid); }
+  .toast.error { background: var(--red); }
+
+  /* CONFIG PANEL */
+  .config-panel {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+
+  .config-box {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 480px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .config-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+
+  .config-sub {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .config-field { margin-bottom: 16px; }
+
+  .config-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .config-input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dark);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .config-input:focus { border-color: var(--green-mid); }
+
+  .config-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--green-dark);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+
+  .config-btn:hover { background: var(--green-mid); }
+
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .filter-tab {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--text-light);
+    transition: all 0.15s;
+  }
+
+  .filter-tab.active {
+    background: var(--green-dark);
+    color: white;
+    border-color: var(--green-dark);
+  }
+</style>
+</head>
+<body>
+
+<!-- CONFIG PANEL -->
+<div class="config-panel" id="configPanel">
+  <div class="config-box">
+    <div class="config-title">🍲 Dashboard Setup</div>
+    <div class="config-sub">Enter your Airtable credentials to connect the dashboard to your live data. These are saved in your browser only.</div>
+    <div class="config-field">
+      <div class="config-label">Airtable Personal Access Token</div>
+      <input class="config-input" id="cfgToken" placeholder="patXXXXXXXXXXXXXX..." type="password">
+    </div>
+    <div class="config-field">
+      <div class="config-label">Airtable Base ID</div>
+      <input class="config-input" id="cfgBase" placeholder="appXXXXXXXXXXXXXX...">
+    </div>
+    <div class="config-field">
+      <div class="config-label">Twilio Account SID (for sending replies)</div>
+      <input class="config-input" id="cfgTwilioSid" placeholder="ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX">
+    </div>
+    <div class="config-field">
+      <div class="config-label">Twilio Auth Token</div>
+      <input class="config-input" id="cfgTwilioToken" placeholder="your auth token" type="password">
+    </div>
+    <div style="margin:16px 0;border-top:1px solid #eee;padding-top:16px">
+      <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Airtable Table Names (must match exactly)</div>
+      <div class="config-field">
+        <div class="config-label">Users Table Name</div>
+        <input class="config-input" id="cfgUsersTable" placeholder="Users" value="Users">
+      </div>
+      <div class="config-field">
+        <div class="config-label">Messages Table Name</div>
+        <input class="config-input" id="cfgMessagesTable" placeholder="Messages" value="Messages">
+      </div>
+      <div class="config-field">
+        <div class="config-label">Conversations Table Name</div>
+        <input class="config-input" id="cfgConversationsTable" placeholder="Conversations" value="Conversations">
+      </div>
+    </div>
+    <div id="configError" style="display:none;background:#FFEBEE;color:#C62828;padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:12px;line-height:1.6"></div>
+    <button class="config-btn" onclick="saveConfig()">Connect Dashboard →</button>
+    <button class="config-btn" onclick="testConnection()" style="background:#128C7E;margin-top:8px">Test Connection First</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">🍲</div>
+    <div>
+      <div class="topbar-title">Mama Tee's Kitchen</div>
+      <div class="topbar-sub">Live Operations Dashboard</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE
+    </div>
+    <div class="last-updated" id="lastUpdated">Connecting...</div>
+    <button class="btn btn-refresh" onclick="loadAll()" style="border-radius:8px;font-size:12px">↻ Refresh</button>
+    <button class="btn btn-handoff" onclick="showConfig()" style="border-radius:8px;font-size:12px">⚙ Settings</button>
+  </div>
+</div>
+
+<!-- METRICS -->
+<div class="metrics-row">
+  <div class="metric-card">
+    <div class="metric-icon green">👥</div>
+    <div class="metric-info">
+      <div class="metric-value" id="totalUsers">—</div>
+      <div class="metric-label">Total Users</div>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon blue">💬</div>
+    <div class="metric-info">
+      <div class="metric-value" id="activeChats">—</div>
+      <div class="metric-label">Active Chats</div>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon orange">📨</div>
+    <div class="metric-info">
+      <div class="metric-value" id="totalMessages">—</div>
+      <div class="metric-label">Total Messages</div>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon red">🚨</div>
+    <div class="metric-info">
+      <div class="metric-value" id="handoffCount">—</div>
+      <div class="metric-label">Handoffs</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Conversations</div>
+      <div class="sidebar-count" id="convCount">0</div>
+    </div>
+    <div class="search-box">
+      <input class="search-input" id="searchInput" placeholder="🔍  Search by name or number..." oninput="filterConversations()">
+    </div>
+    <div class="filter-tabs">
+      <div class="filter-tab active" onclick="setFilter('all', this)">All</div>
+      <div class="filter-tab" onclick="setFilter('active', this)">Active</div>
+      <div class="filter-tab" onclick="setFilter('handoff', this)">Handoff 🔴</div>
+      <div class="filter-tab" onclick="setFilter('resolved', this)">Resolved</div>
+    </div>
+    <div class="conv-list" id="convList">
+      <div class="loading"><div class="spinner"></div> Loading...</div>
+    </div>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="empty-chat" id="emptyChat">
+      <div class="empty-chat-icon">💬</div>
+      <div class="empty-chat-title">Select a conversation</div>
+      <div class="empty-chat-sub">Click any conversation on the left to view the chat</div>
+    </div>
+
+    <div id="chatView" style="display:none;flex:1;flex-direction:column;overflow:hidden;display:none">
+      <div class="chat-header" id="chatHeader">
+        <div class="chat-header-left">
+          <div class="chat-avatar" id="chatAvatar" style="background:#075E54">MT</div>
+          <div>
+            <div class="chat-header-name" id="chatName">Customer</div>
+            <div class="chat-header-status" id="chatStatus">active</div>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <button class="btn btn-handoff" onclick="markResolved()" id="resolveBtn">✅ Mark Resolved</button>
+          <button class="btn btn-resolve" onclick="refreshChat()">↻</button>
+        </div>
+      </div>
+
+      <div class="messages-area" id="messagesArea">
+        <div class="loading"><div class="spinner"></div> Loading messages...</div>
+      </div>
+
+      <div class="reply-area">
+        <div class="handoff-notice" id="handoffNotice">
+          🚨 This conversation has been handed off to a human agent. Your reply will be sent as a human agent.
+        </div>
+        <div class="reply-box">
+          <textarea class="reply-input" id="replyInput" placeholder="Type a reply as human agent..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendReply()}"
+            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+          <button class="send-btn" onclick="sendReply()">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // CONFIG
+  let CONFIG = {
+    token: localStorage.getItem('at_token') || '',
+    base: localStorage.getItem('at_base') || '',
+    twilioSid: localStorage.getItem('twilio_sid') || '',
+    twilioToken: localStorage.getItem('twilio_token') || ''
+  };
+
+  const TABLES = {
+    users: 'Users',
+    messages: 'Messages',
+    conversations: 'Conversations'
+  };
+
+  const TWILIO_FROM = 'whatsapp:+14155238886';
+
+  let allConversations = [];
+  let currentConv = null;
+  let currentFilter = 'all';
+  let refreshInterval = null;
+
+  // COLORS for avatars
+  const COLORS = ['#075E54','#128C7E','#E65100','#1565C0','#6A1B9A','#AD1457','#2E7D32','#4527A0'];
+  const getColor = (str) => COLORS[str.charCodeAt(0) % COLORS.length];
+  const getInitials = (name, phone) => {
+    if (name && name !== 'Customer') return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    return phone ? phone.replace(/\D/g,'').slice(-2) : 'MT';
+  };
+
+  // AIRTABLE API
+  async function airtable(table, params = '') {
+    const url = `https://api.airtable.com/v0/${CONFIG.base}/${encodeURIComponent(table)}${params}`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${CONFIG.token}` }
+    });
+    if (!res.ok) throw new Error(`Airtable error: ${res.status}`);
+    return res.json();
+  }
+
+  async function airtableCreate(table, fields) {
+    const url = `https://api.airtable.com/v0/${CONFIG.base}/${encodeURIComponent(table)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CONFIG.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ fields })
+    });
+    if (!res.ok) throw new Error(`Airtable create error: ${res.status}`);
+    return res.json();
+  }
+
+  async function airtableUpdate(table, recordId, fields) {
+    const url = `https://api.airtable.com/v0/${CONFIG.base}/${encodeURIComponent(table)}/${recordId}`;
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${CONFIG.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ fields })
+    });
+    if (!res.ok) throw new Error(`Airtable update error: ${res.status}`);
+    return res.json();
+  }
+
+  // LOAD ALL DATA
+  async function loadAll() {
+    if (!CONFIG.token || !CONFIG.base) return;
+    try {
+      await Promise.all([loadMetrics(), loadConversations()]);
+      document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+    } catch(e) {
+      showToast('Failed to load data. Check your credentials.', 'error');
+    }
+  }
+
+  async function loadMetrics() {
+    const [users, messages, conversations] = await Promise.all([
+      airtable(TABLES.users),
+      airtable(TABLES.messages),
+      airtable(TABLES.conversations)
+    ]);
+
+    document.getElementById('totalUsers').textContent = users.records?.length || 0;
+    document.getElementById('totalMessages').textContent = messages.records?.length || 0;
+
+    const convRecords = conversations.records || [];
+    const active = convRecords.filter(r => r.fields?.status === 'active').length;
+    const handoffs = convRecords.filter(r => r.fields?.status === 'handoff').length;
+
+    document.getElementById('activeChats').textContent = active;
+    document.getElementById('handoffCount').textContent = handoffs;
+  }
+
+  async function loadConversations() {
+    const data = await airtable(TABLES.conversations, '?sort[0][field]=last_updated&sort[0][direction]=desc');
+    allConversations = data.records || [];
+    document.getElementById('convCount').textContent = allConversations.length;
+    renderConversations();
+  }
+
+  function renderConversations() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    let filtered = allConversations;
+
+    if (currentFilter !== 'all') {
+      filtered = filtered.filter(r => r.fields?.status === currentFilter);
+    }
+
+    if (search) {
+      filtered = filtered.filter(r => {
+        const name = (r.fields?.customer_name || '').toLowerCase();
+        const phone = (r.fields?.phone_number || '').toLowerCase();
+        return name.includes(search) || phone.includes(search);
+      });
+    }
+
+    const list = document.getElementById('convList');
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div>No conversations found</div></div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(conv => {
+      const f = conv.fields || {};
+      const name = f.customer_name || f.phone_number || 'Unknown';
+      const phone = f.phone_number || '';
+      const status = f.status || 'active';
+      const lastMsg = f.last_message || 'No messages yet';
+      const lastTime = f.last_updated ? new Date(f.last_updated).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+      const initials = getInitials(f.customer_name, phone);
+      const color = getColor(name);
+      const isActive = currentConv?.id === conv.id;
+
+      return `
+        <div class="conv-item ${status === 'handoff' ? 'handoff' : ''} ${isActive ? 'active' : ''}"
+             onclick="openConversation('${conv.id}')">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div class="conv-avatar" style="background:${color};color:white;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${initials}</div>
+            <div style="flex:1;min-width:0">
+              <div class="conv-top">
+                <div class="conv-name">${name}</div>
+                <div class="conv-time">${lastTime}</div>
+              </div>
+              <div class="conv-preview">${lastMsg}</div>
+              <div class="conv-badges">
+                <span class="badge badge-${status}">${status}</span>
+                ${f.status === 'handoff' ? '<span class="badge" style="background:#FFEBEE;color:#C62828">🚨 Needs Human</span>' : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function openConversation(convId) {
+    currentConv = allConversations.find(c => c.id === convId);
+    if (!currentConv) return;
+
+    renderConversations();
+
+    const f = currentConv.fields || {};
+    const name = f.customer_name || f.phone_number || 'Customer';
+    const status = f.status || 'active';
+    const initials = getInitials(f.customer_name, f.phone_number);
+    const color = getColor(name);
+
+    document.getElementById('emptyChat').style.display = 'none';
+    const chatView = document.getElementById('chatView');
+    chatView.style.display = 'flex';
+    chatView.style.flexDirection = 'column';
+    chatView.style.flex = '1';
+    chatView.style.overflow = 'hidden';
+
+    document.getElementById('chatAvatar').textContent = initials;
+    document.getElementById('chatAvatar').style.background = color;
+    document.getElementById('chatName').textContent = name;
+    document.getElementById('chatStatus').textContent = `${f.phone_number || ''} • ${status}`;
+
+    const handoffNotice = document.getElementById('handoffNotice');
+    handoffNotice.style.display = status === 'handoff' ? 'flex' : 'none';
+
+    await loadMessages(f.conversation_id || f.phone_number);
+  }
+
+  async function loadMessages(conversationId) {
+    const area = document.getElementById('messagesArea');
+    area.innerHTML = '<div class="loading"><div class="spinner"></div> Loading messages...</div>';
+
+    try {
+      const formula = encodeURIComponent(`{conversation_id} = "${conversationId}"`);
+      const data = await airtable(TABLES.messages, `?filterByFormula=${formula}&sort[0][field]=timestamp&sort[0][direction]=asc`);
+      const messages = data.records || [];
+
+      if (messages.length === 0) {
+        area.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div>No messages yet</div></div>';
+        return;
+      }
+
+      area.innerHTML = messages.map((msg, i) => {
+        const f = msg.fields || {};
+        const sender = f.sender_type || 'user';
+        const content = f.content || '';
+        const time = f.timestamp ? new Date(f.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+
+        let bubbleClass = 'msg-user';
+        let senderLabel = '';
+        if (sender === 'bot') {
+          bubbleClass = 'msg-bot';
+          senderLabel = `<div class="msg-sender-label msg-sender-bot">🤖 Mama Tee Bot</div>`;
+        } else if (sender === 'human') {
+          bubbleClass = 'msg-human';
+          senderLabel = `<div class="msg-sender-label msg-sender-human">👤 Support Agent</div>`;
+        }
+
+        return `
+          <div class="msg-group">
+            ${sender !== 'user' ? senderLabel : ''}
+            <div class="msg-bubble ${bubbleClass}">
+              ${content}
+              <div class="msg-time">${time}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      area.scrollTop = area.scrollHeight;
+    } catch(e) {
+      area.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div>Failed to load messages</div></div>';
+    }
+  }
+
+  async function sendReply() {
+    const input = document.getElementById('replyInput');
+    const text = input.value.trim();
+    if (!text || !currentConv) return;
+
+    const f = currentConv.fields || {};
+    const phone = f.conversation_id || f.phone_number;
+
+    try {
+      await airtableCreate(TABLES.messages, {
+        conversation_id: phone,
+        sender_type: 'human',
+        content: text,
+        timestamp: new Date().toISOString()
+      });
+
+      await airtableUpdate(TABLES.conversations, currentConv.id, {
+        last_message: text,
+        last_updated: new Date().toISOString()
+      });
+
+      input.value = '';
+      input.style.height = 'auto';
+
+      await loadMessages(phone);
+      showToast('Reply sent successfully', 'success');
+    } catch(e) {
+      showToast('Failed to send reply', 'error');
+    }
+  }
+
+  async function markResolved() {
+    if (!currentConv) return;
+    try {
+      await airtableUpdate(TABLES.conversations, currentConv.id, { status: 'resolved' });
+      showToast('Conversation marked as resolved ✅', 'success');
+      currentConv.fields.status = 'resolved';
+      await loadAll();
+      openConversation(currentConv.id);
+    } catch(e) {
+      showToast('Failed to update status', 'error');
+    }
+  }
+
+  async function refreshChat() {
+    if (!currentConv) return;
+    const f = currentConv.fields || {};
+    await loadMessages(f.conversation_id || f.phone_number);
+  }
+
+  function filterConversations() { renderConversations(); }
+
+  function setFilter(filter, el) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderConversations();
+  }
+
+  function showToast(msg, type = '') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function showConfig() {
+    document.getElementById('configPanel').style.display = 'flex';
+  }
+
+  async function testConnection() {
+    const token = document.getElementById('cfgToken').value.trim();
+    const base = document.getElementById('cfgBase').value.trim();
+    const usersTable = document.getElementById('cfgUsersTable').value.trim() || 'Users';
+    const errBox = document.getElementById('configError');
+
+    if (!token || !base) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'Please enter your Airtable token and Base ID first.';
+      return;
+    }
+
+    errBox.style.display = 'block';
+    errBox.style.background = '#E3F2FD';
+    errBox.style.color = '#1565C0';
+    errBox.textContent = 'Testing connection...';
+
+    try {
+      const url = `https://api.airtable.com/v0/${base}/${encodeURIComponent(usersTable)}?maxRecords=1`;
+      const res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        errBox.style.background = '#E8F5E9';
+        errBox.style.color = '#2E7D32';
+        errBox.textContent = '✅ Connection successful! Your credentials are correct. Click Connect Dashboard.';
+      } else {
+        const data = await res.json();
+        errBox.style.background = '#FFEBEE';
+        errBox.style.color = '#C62828';
+        if (res.status === 401) {
+          errBox.textContent = '❌ Invalid token. Check your Airtable Personal Access Token.';
+        } else if (res.status === 403) {
+          errBox.textContent = '❌ Permission denied. Make sure your token has data.records:read scope and access to this base.';
+        } else if (res.status === 404) {
+          errBox.textContent = `❌ Table "${usersTable}" not found. Check your table name matches exactly what is in Airtable.`;
+        } else {
+          errBox.textContent = `❌ Error ${res.status}: ${data.error?.message || 'Unknown error'}`;
+        }
+      }
+    } catch(e) {
+      errBox.style.background = '#FFEBEE';
+      errBox.style.color = '#C62828';
+      errBox.textContent = `❌ Network error: ${e.message}. Check your internet connection.`;
+    }
+  }
+
+  function saveConfig() {
+    const token = document.getElementById('cfgToken').value.trim();
+    const base = document.getElementById('cfgBase').value.trim();
+    const twilioSid = document.getElementById('cfgTwilioSid').value.trim();
+    const twilioToken = document.getElementById('cfgTwilioToken').value.trim();
+    const usersTable = document.getElementById('cfgUsersTable').value.trim() || 'Users';
+    const messagesTable = document.getElementById('cfgMessagesTable').value.trim() || 'Messages';
+    const conversationsTable = document.getElementById('cfgConversationsTable').value.trim() || 'Conversations';
+
+    if (!token || !base) {
+      showToast('Please enter your Airtable token and Base ID', 'error');
+      return;
+    }
+
+    localStorage.setItem('at_token', token);
+    localStorage.setItem('at_base', base);
+    localStorage.setItem('twilio_sid', twilioSid);
+    localStorage.setItem('twilio_token', twilioToken);
+    localStorage.setItem('tbl_users', usersTable);
+    localStorage.setItem('tbl_messages', messagesTable);
+    localStorage.setItem('tbl_conversations', conversationsTable);
+
+    CONFIG = { token, base, twilioSid, twilioToken };
+    TABLES.users = usersTable;
+    TABLES.messages = messagesTable;
+    TABLES.conversations = conversationsTable;
+
+    document.getElementById('configPanel').style.display = 'none';
+    showToast('Connected successfully!', 'success');
+    loadAll();
+    startAutoRefresh();
+  }
+
+  function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(loadAll, 30000);
+  }
+
+  // INIT
+  window.onload = () => {
+    const savedUsers = localStorage.getItem('tbl_users');
+    const savedMessages = localStorage.getItem('tbl_messages');
+    const savedConversations = localStorage.getItem('tbl_conversations');
+    if (savedUsers) TABLES.users = savedUsers;
+    if (savedMessages) TABLES.messages = savedMessages;
+    if (savedConversations) TABLES.conversations = savedConversations;
+
+    if (CONFIG.token && CONFIG.base) {
+      document.getElementById('configPanel').style.display = 'none';
+      document.getElementById('cfgToken').value = CONFIG.token;
+      document.getElementById('cfgBase').value = CONFIG.base;
+      document.getElementById('cfgTwilioSid').value = CONFIG.twilioSid;
+      document.getElementById('cfgTwilioToken').value = CONFIG.twilioToken;
+      if (savedUsers) document.getElementById('cfgUsersTable').value = savedUsers;
+      if (savedMessages) document.getElementById('cfgMessagesTable').value = savedMessages;
+      if (savedConversations) document.getElementById('cfgConversationsTable').value = savedConversations;
+      loadAll();
+      startAutoRefresh();
+    }
+  };
+</script>
+</body>
+</html>
