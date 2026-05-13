@@ -421,6 +421,7 @@ async function loadAll(){
     allMsgRecords = await fetchAll(C.tMsgs);
     document.getElementById('mMsgs').textContent = allMsgRecords.length;
     msgConvField = detectConvField(allMsgRecords);
+    msgConvField = 'Conversation_id';
     console.log('Auto-detected conversation field in Messages:', msgConvField);
 
     await Promise.all([loadUsers(), loadConvs()]);
@@ -445,9 +446,23 @@ async function loadConvs(){
         allConvs = records.map(r=>{
           const f = r.fields||{};
           // convId: try many field names, fall back to record ID
-          const convId = f.conversation_id||f.conversationId||f.ConversationID||f.conv_id||
-                         f.phone_number||f.phone||f.Phone||f.wa_id||f.whatsapp_id||
-                         f.session_id||f.user_id||f.from||f.From||r.id;
+          const convId =
+  f.Conversation_id ||
+  f.conversation_id ||
+  f.conversationId ||
+  f.ConversationID ||
+  f.conv_id ||
+  f.phone_number ||
+  f.Phone_Number ||
+  f.phone ||
+  f.Phone ||
+  f.wa_id ||
+  f.whatsapp_id ||
+  f.session_id ||
+  f.user_id ||
+  f.from ||
+  f.From ||
+  r.id;
           const rawStatus = f.status||f.Status||f.state||f.State||'active';
           // Last message preview from cached messages
           const convMsgs = msgConvField ? allMsgRecords.filter(m=>(m.fields||{})[msgConvField]===convId) : [];
@@ -455,7 +470,23 @@ async function loadConvs(){
           return {
             atId: r.id,
             convId,
-            phone: f.phone_number||f.phone||f.Phone||convId,
+            const convId =
+  f.Conversation_id ||
+  f.conversation_id ||
+  f.conversationId ||
+  f.ConversationID ||
+  f.conv_id ||
+  f.phone_number ||
+  f.Phone_Number ||
+  f.phone ||
+  f.Phone ||
+  f.wa_id ||
+  f.whatsapp_id ||
+  f.session_id ||
+  f.user_id ||
+  f.from ||
+  f.From ||
+  r.id;,
             name: f.customer_name||f.customerName||f.name||f.Name||f.customer||f.Customer||'Customer',
             status: normStatus(rawStatus),
             lastMsg: lastMsgRec ? getMsgContent(lastMsgRec.fields) : (f.last_message||f.lastMessage||f.Last_Message||''),
