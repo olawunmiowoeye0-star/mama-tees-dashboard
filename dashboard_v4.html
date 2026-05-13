@@ -466,7 +466,7 @@ async function loadConvs(){
           // Try every possible field name for the conversation identifier
           const convId=f.conversation_id||f.conversationId||f.ConversationID||f.conv_id||
                        f.phone_number||f.phone||f.Phone||f.wa_id||f.whatsapp_id||
-                       f.session_id||f.user_id||f.from||f.From||f.contact||f.Contact||r.id;
+                       f.session_id||f.user_id||f.from||f.From||f.contact||f.Contact;
           // Get last message from cached messages
           const convMsgs=msgConvField?allMsgRecords.filter(m=>(m.fields||{})[msgConvField]===convId):[];
           const lastRec=convMsgs.length?convMsgs.reduce((a,b)=>getMsgTime(a.fields,a.createdTime)>getMsgTime(b.fields,b.createdTime)?a:b):null;
