@@ -97,4 +97,4 @@ mama-tees-dashboard/
 
 ## 👩🏾‍💻 Built By
 
-**Olawunmi** — AI Automation Bootcamp Capstone Project, 2025
+**Group 13** — AI Automation Bootcamp Capstone Project, 2025
