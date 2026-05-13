@@ -7,8 +7,7 @@ project for the AI Automation Bootcamp.
 
 ## Live Demo
 - 📱 WhatsApp Bot: Send "join [your-sandbox-code]" to +1 415 523 8886
-- 📊 Dashboard: https://olawunmiowoeye0-star.github.io/mama-tees-dashboard
-
+- 📊 Dashboard:(https://olawunmiowoeye0-star.github.io/mama-tees-dashboard/dashboard_v3.html)
 ## Tech Stack
 | Tool | Purpose |
 |------|---------|
